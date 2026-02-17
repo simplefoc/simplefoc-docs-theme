@@ -47,6 +47,7 @@ ga_tracking: ""
 plugins:
   - jekyll-seo-tag
   - jekyll-toc
+  - jekyll-include-cache
 
 compress_html:
   clippings: all

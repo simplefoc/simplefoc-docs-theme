@@ -40,6 +40,7 @@
   }
 }
 
+
 .navigation-list-item {
   @include fs-4;
   margin: 0;
@@ -49,56 +50,20 @@
   }
   
   .grand-child-list {
-    display: none;
     @include fs-3;
   }
   .grand-grand-child-list {
-    display: none;
     @include fs-3;
   }
   .grand-grand-grand-child-list {
-    display: none;
     @include fs-3;
   }
   
   .grand-grand-grand-grand-child-list {
-    display: none;
     @include fs-3;
   }
   .child-list {
-    display: bock;
     @include fs-4;
-  }
-
-
-  &.active {
-    .child-list {
-      display: block;
-
-      &.active{
-        .grand-child-list{
-          display: block;
-          
-          &.active{
-            .grand-grand-child-list{
-              display: block;
-              
-              &.active{
-                .grand-grand-grand-child-list{
-                  display: block;
-
-                  &.active{
-                    .grand-grand-grand-grand-child-list{
-                      display: block;
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }
 

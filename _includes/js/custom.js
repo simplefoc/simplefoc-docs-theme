@@ -64,6 +64,7 @@ var defines =[
 var classNames = [
     "BLDCMotor",
     "StepperMotor",
+    "HybridStepperMotor",
     "BLDCDriver3PWM",
     "SimpleFOCDebug",
     "BLDCDriver6PWM",
@@ -151,6 +152,8 @@ var funcNames = [
     "absoluteZeroAlign",
     "electricAngle",
     "alignSensor",
+    "alignCurrentSense",
+    "updateLoopFOCTime",
     "normalizeAngle",
     "_sin",
     "_cos",
@@ -182,7 +185,16 @@ var funcNames = [
     "motion",
     "target",
     "motor",
-    "SIMPLEFOC_DEBUG"
+    "SIMPLEFOC_DEBUG",
+    "characteriseMotor",
+    "tuneCurrentController",
+    "custom",
+    "linkCustomMotionControl",
+    "updateVoltageLimit",
+    "updateCurrentLimit",
+    "updateVelocityLimit",
+    "controller",
+    "torque_controller"
 
 ];
 var structNames = [
@@ -198,7 +210,8 @@ var structNames = [
     "MotionControlType",
     "Direction",
     "DQVoltage_s",
-    "VerboseMode"
+    "VerboseMode",
+    "FOCMotorStatus"
 ];
 var structProps = [
     "USE_EXTERN",
@@ -214,17 +227,21 @@ var structProps = [
     "voltage",
     "SpaceVectorPWM",
     "SinePWM",
-    "Trapesoid_120",
-    "Trapesoid_150",
+    "Trapezoid_120",
+    "Trapezoid_150",
     "dc_current",
     "foc_current",
+    "estimated_current",
     "torque",
     "CW",
     "CCW",
     "nothing",
     "on_request",
     "user_friendly",
-    "machine_readable"
+    "machine_readable",
+    "angle_nocascade",
+    "custom",
+    "motor_ready"
 ];
 jtd.onReady(function(){
     document.querySelectorAll('.n').forEach(function(e) {
@@ -253,10 +270,10 @@ jtd.onReady(function(){
     document.querySelectorAll('.cp').forEach(function(e) {
         var str = e.innerHTML;
 
-        // show libraries
-        libraires.forEach(function(lib){
-            str = str.replace( lib ,"<span class='incLib'>" +lib + "</span>" );
-        }); 
+        // // show libraries
+        // libraires.forEach(function(lib){
+        //     str = str.replace( lib ,"<span class='incLib'>" +lib + "</span>" );
+        // }); 
 
         // show defines
         defines.forEach(function(def){
@@ -292,3 +309,107 @@ function show(id,cls){
     var elmnt = document.getElementById("btn-"+id);
     if(elmnt) elmnt.classList.add("btn-primary");
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const currentUrl = window.location.pathname;
+    const navItems = document.querySelectorAll('.navigation-list-item[data-url]');
+    let activeItem = null;
+
+    // Find the active item (current page)
+    navItems.forEach(item => {
+        const itemUrl = item.dataset.url;
+        if (currentUrl === itemUrl) {
+            activeItem = item;
+        }
+    });
+
+    if (activeItem) {
+        // Show all ancestors of active item
+        let parent = activeItem.closest('ul').closest('.navigation-list-item');
+        while (parent) {
+            const childList = parent.querySelector(':scope > .navigation-list-child-list');
+            if (childList) {
+                childList.style.display = 'block';
+            }
+            parent = parent.closest('ul').closest('.navigation-list-item');
+        }
+
+        // Show children of active item
+        const activeChildList = activeItem.querySelector(':scope > .navigation-list-child-list');
+        if (activeChildList) {
+            activeChildList.style.display = 'block';
+        }
+
+        // Highlight ONLY the active link
+        const link = activeItem.querySelector('.navigation-list-link');
+        if (link) {
+            link.classList.add('active');
+        }
+    }
+});
+
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Add copy buttons to all code blocks
+    document.querySelectorAll('pre.highlight, figure.highlight').forEach(function(codeBlock) {
+      // Skip if already processed
+      if (codeBlock.parentElement.classList.contains('code-wrapper')) {
+        return;
+      }
+      
+      // Skip shell/bash code blocks - check parent elements
+      let parent = codeBlock.parentElement;
+      let isShellCode = false;
+      while (parent) {
+        if (parent.classList && (parent.classList.contains('language-sh') || 
+                                 parent.classList.contains('language-bash') || 
+                                 parent.classList.contains('language-shell'))) {
+          isShellCode = true;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+      if (isShellCode) {
+        return;
+      }
+      
+      // Create wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-wrapper';
+      wrapper.style.position = 'relative';
+      
+      // Create copy button (no header)
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-code-button';
+      copyButton.textContent = 'Copy';
+      copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+      
+      // Wrap the code block
+      codeBlock.parentNode.insertBefore(wrapper, codeBlock);
+      wrapper.appendChild(codeBlock);
+      wrapper.appendChild(copyButton);
+      
+      // Add click handler
+      copyButton.addEventListener('click', function() {
+        const code = codeBlock.querySelector('code') || codeBlock;
+        const text = code.textContent;
+        
+        navigator.clipboard.writeText(text).then(function() {
+          copyButton.textContent = 'Copied!';
+          copyButton.classList.add('copied');
+          
+          setTimeout(function() {
+            copyButton.textContent = 'Copy';
+            copyButton.classList.remove('copied');
+          }, 2000);
+        }).catch(function(err) {
+          console.error('Failed to copy:', err);
+          copyButton.textContent = 'Failed';
+          setTimeout(function() {
+            copyButton.textContent = 'Copy';
+          }, 2000);
+        });
+      });
+    });
+  });

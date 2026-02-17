@@ -116,3 +116,41 @@
 .btn-green {
   @include btn-color($white, $green-100);
 }
+
+.btn-docs {
+  padding: 0.2em 0.5em;
+  @include btn-color($blue-000, $white);
+
+  &::before {
+    content: "📚 ";
+  }
+  &:hover {
+    @include btn-color($white, $blue-000);
+  }
+}
+.btn-docs-middle {
+  padding: 0.2em 0.5em;
+  vertical-align: middle;
+  @include btn-color($blue-000, $white);
+
+  &::before {
+    content: "📚 ";
+  }
+  &:hover {
+    @include btn-color($white, $blue-000);
+  }
+}
+
+.btn-step{
+  padding: 0.2em 0.5em;
+  vertical-align: middle;
+  @include btn-color($blue-000, $white);
+
+  &:hover {
+    @include btn-color($white, $blue-000);
+  }
+
+  &::before {
+    content: "⚡ ";
+  }
+}
