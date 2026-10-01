@@ -1,0 +1,313 @@
+<div class="sfoc-rating-container">
+  <!-- Rating Bar -->
+  <div class="page-reputation-badge" id="reputationBadge">
+    <div class="score-display">
+      <span class="score-icon">★</span>
+      <span class="score-text" id="scoreText">Loading...</span>
+    </div>
+
+    <span class="score-divider"></span>
+
+    <div class="vote-actions" id="voteActions">
+      <span class="vote-prompt">Helpful?</span>
+      <button type="button" class="vote-chip up" id="btnVoteUp" onclick="toggleVote('up')" title="Helpful (click again to remove)">
+        <span class="chip-icon">👍</span>
+        <span class="chip-count" id="badgeUpCount">0</span>
+      </button>
+      <button type="button" class="vote-chip down" id="btnVoteDown" onclick="toggleVote('down')" title="Needs improvement (click again to remove)">
+        <span class="chip-icon">👎</span>
+        <span class="chip-count" id="badgeDownCount">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Downvote Feedback Flyout -->
+  <div class="feedback-popover" id="feedbackPopover" style="display:none;">
+    <div class="feedback-header">
+      <p class="feedback-title">How can we improve this page?</p>
+      <button type="button" class="feedback-close-btn" onclick="closeFeedback()" aria-label="Close">&times;</button>
+    </div>
+    <textarea id="feedbackText" placeholder="e.g. Broken code snippet, outdated pinout, confusing explanation..." rows="3"></textarea>
+    <div class="feedback-actions">
+      <button type="button" class="btn-cancel" onclick="closeFeedback()">Skip</button>
+      <button type="button" class="btn-submit" onclick="submitComment()">Send Feedback</button>
+    </div>
+  </div>
+
+  <div class="feedback-submitted" id="feedbackThanks" style="display:none;">
+    <span class="check-icon">✓</span> Thank you! Your feedback helps improve SimpleFOC docs.
+  </div>
+</div>
+
+<style>
+  .sfoc-rating-container {
+    margin: 8px 0 20px 0;
+    max-width: 440px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .page-reputation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    color: #475569;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .page-reputation-badge:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+  }
+
+  .score-icon { color: #f59e0b; font-size: 0.95rem; line-height: 1; }
+  .score-text { font-weight: 600; color: #1e293b; letter-spacing: -0.01em; }
+  .score-divider { width: 1px; height: 14px; background: #e2e8f0; }
+
+  .vote-actions { display: flex; align-items: center; gap: 6px; }
+  .vote-prompt { color: #64748b; font-size: 0.78rem; font-weight: 400; }
+
+  .vote-chip {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 3px 9px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1;
+    color: #334155;
+    transition: all 0.15s ease-in-out;
+  }
+
+  .vote-chip .chip-icon { font-size: 0.85rem; }
+  .vote-chip .chip-count { font-weight: 600; color: #475569; }
+  .vote-chip:hover { background: #ffffff; border-color: #94a3b8; }
+
+  /* Active states */
+  .vote-chip.selected-up {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #047857;
+  }
+  .vote-chip.selected-up .chip-count { color: #047857; }
+
+  .vote-chip.selected-down {
+    background: #fef2f2;
+    border-color: #ef4444;
+    color: #b91c1c;
+  }
+  .vote-chip.selected-down .chip-count { color: #b91c1c; }
+
+  /* Feedback box */
+  .feedback-popover {
+    margin-top: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+    animation: sfFadeSlide 0.2s ease-out;
+  }
+
+  .feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .feedback-title {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .feedback-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+  }
+  .feedback-close-btn:hover { color: #475569; }
+
+  .feedback-popover textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    background: #f8fafc;
+    color: #1e293b;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .feedback-popover textarea:focus {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.1);
+  }
+
+  .feedback-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .feedback-actions button {
+    font-size: 0.76rem;
+    border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+
+  .btn-cancel { background: transparent; border: 1px solid transparent; color: #64748b; }
+  .btn-cancel:hover { background: #f1f5f9; color: #334155; }
+  .btn-submit { background: #0f172a; border: 1px solid #0f172a; color: #ffffff; }
+  .btn-submit:hover { background: #1e293b; }
+
+  .feedback-submitted {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #047857;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: sfFadeSlide 0.2s ease-out;
+  }
+
+  @keyframes sfFadeSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<script type="text/javascript">
+  (function() {
+    const pageId = "{{ page.url }}";
+    const apiUrl = "https://simplefoc.com/assets/php/docs_count/vote.php";
+    const storageKey = "sfoc_vote_" + pageId;
+    let currentVote = localStorage.getItem(storageKey); /*// 'up', 'down', or null*/
+
+    function updateBadge(up, down) {
+      const total = up + down;
+      const textElem = document.getElementById("scoreText");
+      document.getElementById("badgeUpCount").textContent = up;
+      document.getElementById("badgeDownCount").textContent = down;
+
+      if (total === 0) {
+        textElem.textContent = "Be the first to rate";
+      } else if (total < 3) {
+        textElem.textContent = `${up} found helpful`;
+      } else {
+        const percent = Math.round((up / total) * 100);
+        textElem.textContent = `${percent}% helpful (${total})`;
+      }
+
+      /* Reset button styling */
+      const upBtn = document.getElementById("btnVoteUp");
+      const downBtn = document.getElementById("btnVoteDown");
+      upBtn.classList.remove("selected-up");
+      downBtn.classList.remove("selected-down");
+
+      if (currentVote === 'up') upBtn.classList.add("selected-up");
+      if (currentVote === 'down') downBtn.classList.add("selected-down");
+    }
+
+    /* Load initial counts */
+    fetch(`${apiUrl}?page=${encodeURIComponent(pageId)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") updateBadge(data.up, data.down);
+      })
+      .catch(() => {
+        document.getElementById("scoreText").textContent = "Community rated";
+      });
+
+    window.toggleVote = function(selectedType) {
+      const previousVote = currentVote;
+      /*// If clicking the active button again, un-vote ('none'); otherwise set to selectedType*/
+      const nextVote = (previousVote === selectedType) ? 'none' : selectedType;
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          page: pageId, 
+          vote: nextVote, 
+          previous_vote: previousVote,
+          action: 'vote' 
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          if (nextVote === 'none') {
+            localStorage.removeItem(storageKey);
+            currentVote = null;
+            closeFeedback();
+          } else {
+            localStorage.setItem(storageKey, nextVote);
+            currentVote = nextVote;
+
+            /*// Trigger feedback popover on downvote*/
+            if (nextVote === 'down') {
+              document.getElementById("feedbackPopover").style.display = "block";
+            } else {
+              closeFeedback();
+            }
+          }
+          updateBadge(data.up, data.down);
+        }
+      });
+    };
+
+    window.closeFeedback = function() {
+      document.getElementById("feedbackPopover").style.display = "none";
+    };
+
+    window.submitComment = function() {
+      const comment = document.getElementById("feedbackText").value;
+      if (!comment.trim()) {
+        closeFeedback();
+        return;
+      }
+
+      fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page: pageId, comment: comment, action: 'comment' })
+      })
+      .then(() => {
+        document.getElementById("feedbackPopover").style.display = "none";
+        document.getElementById("feedbackThanks").style.display = "flex";
+      });
+    };
+  })();
+</script>

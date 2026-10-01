@@ -127,6 +127,9 @@ layout: table_wrappers
               </nav>
             {% endif %}
           {% endunless %}
+          {% unless page.rating == false or page.url == "/" %}
+            {% include page-rating.html %}
+          {% endunless %}
           <div id="main-content" class="page-content" role="main"  tabindex="0">  
               {% if page.toc == true %}
               <details open markdown="block" class="inpage_toc">
