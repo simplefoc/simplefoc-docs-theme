@@ -99,29 +99,32 @@ layout: table_wrappers
         <div class="page">
           {% unless page.url == "/" %}
             {% if page.parent %}
+              {%- comment -%}
+              Breadcrumbs: look up each ancestor page by its title (and its parent's
+              title, so that pages with the same title in different sections don't
+              get mixed up). Independent of the sidebar navigation include.
+              {%- endcomment -%}
+              {%- assign crumb_titles = "" | split: "" -%}
+              {%- if page.grand_grand_grand_grand_parent -%}{%- assign crumb_titles = crumb_titles | push: page.grand_grand_grand_grand_parent -%}{%- endif -%}
+              {%- if page.grand_grand_grand_parent -%}{%- assign crumb_titles = crumb_titles | push: page.grand_grand_grand_parent -%}{%- endif -%}
+              {%- if page.grand_grand_parent -%}{%- assign crumb_titles = crumb_titles | push: page.grand_grand_parent -%}{%- endif -%}
+              {%- if page.grand_parent -%}{%- assign crumb_titles = crumb_titles | push: page.grand_parent -%}{%- endif -%}
+              {%- assign crumb_titles = crumb_titles | push: page.parent -%}
               <nav class="breadcrumb-nav">
                 <ol class=" ">
-                  {% if page.grand_grand_grand_grand_parent %}
-                    <li class="breadcrumb-nav-list-item rm-md "><a href="{{ first_level_url }}">{{ page.grand_grand_grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item rm-md"><a href="{{ second_level_url }}">{{ page.grand_grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item rm-md"><a href="{{ third_level_url }}">{{ page.grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ fourth_level_url }}">{{ page.grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ fifth_level_url }}">{{ page.parent }}</a></li>
-                  {% elsif page.grand_grand_grand_parent %}
-                    <li class="breadcrumb-nav-list-item rm-md"><a href="{{ first_level_url }}">{{ page.grand_grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item rm-md "><a href="{{ second_level_url }}">{{ page.grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ third_level_url }}">{{ page.grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ fourth_level_url }}">{{ page.parent }}</a></li>
-                  {% elsif page.grand_grand_parent %}
-                    <li class="breadcrumb-nav-list-item rm-md"><a href="{{ first_level_url }}">{{ page.grand_grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ second_level_url }}">{{ page.grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ third_level_url }}">{{ page.parent }}</a></li>
-                  {% elsif page.grand_parent  %}
-                    <li class="breadcrumb-nav-list-item"><a href="{{ first_level_url }}">{{ page.grand_parent }}</a></li>
-                    <li class="breadcrumb-nav-list-item"><a href="{{ second_level_url }}">{{ page.parent }}</a></li>
-                  {% else %}
-                    <li class="breadcrumb-nav-list-item"><a href="{{ first_level_url }}">{{ page.parent }}</a></li>
-                  {% endif %}
+                  {%- assign crumb_parent = nil -%}
+                  {%- for crumb_title in crumb_titles -%}
+                    {%- assign crumb_candidates = site.html_pages | where: "title", crumb_title -%}
+                    {%- if forloop.first -%}
+                      {%- assign crumb_page = crumb_candidates | where_exp: "p", "p.parent == nil" | first -%}
+                    {%- else -%}
+                      {%- assign crumb_page = crumb_candidates | where: "parent", crumb_parent | first -%}
+                    {%- endif -%}
+                    {%- unless crumb_page -%}{%- assign crumb_page = crumb_candidates | first -%}{%- endunless -%}
+                    {%- assign crumb_left = forloop.length | minus: forloop.index0 %}
+                    <li class="breadcrumb-nav-list-item{% if crumb_left > 2 %} rm-md{% endif %}">{% if crumb_page %}<a href="{{ crumb_page.url | absolute_url }}">{{ crumb_title }}</a>{% else %}<span>{{ crumb_title }}</span>{% endif %}</li>
+                    {%- assign crumb_parent = crumb_title -%}
+                  {%- endfor %}
                   <li class="breadcrumb-nav-list-item"><span>{{ page.title }}</span></li>
                 </ol>
               </nav>
